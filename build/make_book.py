@@ -1,5 +1,5 @@
 import os
-D = r"c:\Users\yamme\Downloads\AURIO\comic"
+D = r"c:\Users\yamme\Downloads\AURIO"
 src = open(os.path.join(D, "old.html"), encoding="utf8").read()
 head_fonts = src[src.index('<link href'):src.index('<style>')]
 art = src[src.index("const O='#111'"):src.index("const main=")]
