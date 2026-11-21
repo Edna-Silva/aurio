@@ -64,14 +64,16 @@ button:disabled{opacity:.35;cursor:default}button.off{background:#666;color:#ddd
 .intro-p{font-size:calc(var(--pw)/29);font-weight:700;margin:4px 0}
 .ctrl{display:flex;gap:10px;align-items:center;justify-content:center;padding:6px 8px 14px;flex-wrap:wrap}
 .ctrl .info{font-family:Bangers;letter-spacing:2px;color:#bfffd8;min-width:110px;text-align:center}
-@media(max-width:860px){
- :root{--pw:min(92vw,520px)}
- .stage{perspective:none;display:block}
- .book{width:var(--pw);height:auto;margin:0 auto;transform:none!important;transition:none;filter:none}
- .leaf{position:relative;left:0;width:100%;height:auto;transform:none!important}
- .face{position:relative;inset:auto;transform:none!important;backface-visibility:visible;height:calc(var(--pw)/.75);margin-bottom:14px;border:3px solid #000}
- .ctrl .nav{display:none}
-}
+body.single{--pw:min(94vw,calc((100vh - 190px)*.75),520px)}
+body.single .stage{perspective:1800px;padding-top:4px}
+body.single .book{width:var(--pw)}
+body.single .leaf{left:0;width:100%}
+body.single .page{background-image:radial-gradient(#0000000d 1px,transparent 1.5px),linear-gradient(270deg,#00000000 78%,#00000030)}
+body.single .cap{font-size:calc(var(--pw)/27)!important}
+body.single .say{font-size:calc(var(--pw)/27)}
+body.single .top h1{font-size:26px}
+body.single .ctrl{gap:8px;padding-bottom:10px}body.single .ctrl button{font-size:16px;padding:5px 10px}
+@media(max-width:860px){:root{--pw:min(94vw,520px)}}
 .letterbtn{display:block;margin:30px auto 0;font-size:clamp(26px,4vw,42px);padding:14px 34px;background:var(--gold);animation:pulse 1.6s infinite}
 @keyframes pulse{0%,100%{transform:scale(1) rotate(-1deg)}50%{transform:scale(1.07) rotate(1deg)}}
 .modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:16px;background:#000c;backdrop-filter:blur(4px)}
@@ -225,23 +227,38 @@ function pageHTML(p,i){
  return hd+rows+say+letter+`<div class="pn">${i}</div>`;
 }
 const cover=`<div class="cover" id="cover"><svg viewBox="0 0 100 100" style="width:42%"><circle cx="50" cy="50" r="42" fill="#0b2a18" stroke="#ffcf3a" stroke-width="5"/><circle cx="50" cy="50" r="30" fill="#19e36b" stroke="#000" stroke-width="3"/><circle cx="50" cy="50" r="19" fill="#0b2a18" stroke="#ffcf3a" stroke-width="3"/><circle cx="50" cy="50" r="9" fill="#eafff1"/></svg><h2>O LIVRO<br>DAS LENDAS</h2><p>A origem do Guardião da Luz Esmeralda<br>21 de dezembro</p><div class="hint">▶ CLIQUE PARA ABRIR</div></div>`;
-const N=7,leaves=[];
-const pg=(i,side)=>`<div class="face ${side==='back'?'back ':''}page ${i%2?'right-edge':'left-edge'}">${pageHTML(pageDefs[i],i)}</div>`;
-for(let k=0;k<N;k++){
- const front=k===0?`<div class="face">${cover}</div>`:pg(2*k-1,'front');
- const back=k===N-1?`<div class="face back endcover"><div>FIM</div><div class="endwrap" id="endwrap"><img class="endring" src="${RING_URI}" alt="Anel"><div class="endclick">CLIQUE AQUI</div></div></div>`:pg(2*k,'back');
- leaves.push(`<div class="leaf">${front}${back}</div>`);
+const single=matchMedia('(max-width:860px)').matches;document.body.classList.toggle('single',single);
+matchMedia('(max-width:860px)').addEventListener('change',()=>location.reload());
+const endHTML=`<div>FIM</div><div class="endwrap" id="endwrap"><img class="endring" src="${RING_URI}" alt="Anel"><div class="endclick">CLIQUE AQUI</div></div>`;
+const leaves=[];let N;
+if(single){
+ leaves.push(`<div class="leaf"><div class="face">${cover}</div></div>`);
+ pageDefs.forEach((p,i)=>leaves.push(`<div class="leaf"><div class="face page right-edge">${pageHTML(p,i)}</div></div>`));
+ leaves.push(`<div class="leaf"><div class="face endcover">${endHTML}</div></div>`);
+ N=leaves.length-1;
+}else{
+ N=7;
+ const pg=(i,side)=>`<div class="face ${side==='back'?'back ':''}page ${i%2?'right-edge':'left-edge'}">${pageHTML(pageDefs[i],i)}</div>`;
+ for(let k=0;k<N;k++){
+  const front=k===0?`<div class="face">${cover}</div>`:pg(2*k-1,'front');
+  const back=k===N-1?`<div class="face back endcover">${endHTML}</div>`:pg(2*k,'back');
+  leaves.push(`<div class="leaf">${front}${back}</div>`);
+ }
 }
+const L=leaves.length;
 const book=document.getElementById('book');book.innerHTML=leaves.join('');
 let idx=0;const lv=[...document.querySelectorAll('.leaf')];
 const info=document.getElementById('info');
 function render(){
- lv.forEach((l,k)=>{l.classList.toggle('flipped',k<idx);l.style.zIndex=k<idx?k+1:N-k});
- book.style.transform=window.innerWidth<=860?'':`translateX(${idx===0?-25:idx===N?25:0}%)`;
+ lv.forEach((l,k)=>{l.classList.toggle('flipped',k<idx);l.style.zIndex=k<idx?k+1:L-k});
+ book.style.transform=single?'':`translateX(${idx===0?-25:idx===N?25:0}%)`;
  document.getElementById('prev').disabled=idx===0;document.getElementById('next').disabled=idx===N;
- info.textContent=idx===0?'Capa':idx===N?'Fim':'Páginas '+(2*idx-2)+'–'+(2*idx-1);
+ info.textContent=single?(idx===0?'Capa':idx===N?'Fim':'Página '+(idx-1)):(idx===0?'Capa':idx===N?'Fim':'Páginas '+(2*idx-2)+'–'+(2*idx-1));
 }
 function go(n){idx=Math.max(0,Math.min(N,n));render()}
+let tx=null,ty=null;
+document.addEventListener('touchstart',e=>{if(e.touches.length===1){tx=e.touches[0].clientX;ty=e.touches[0].clientY}},{passive:true});
+document.addEventListener('touchend',e=>{if(tx===null||!single||document.getElementById('modal').classList.contains('open'))return;const t=e.changedTouches[0],dx=t.clientX-tx,dy=t.clientY-ty;tx=null;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5){go(dx<0?idx+1:idx-1)}},{passive:true});
 document.getElementById('prev').onclick=()=>go(idx-1);document.getElementById('next').onclick=()=>go(idx+1);
 document.getElementById('cover').onclick=()=>go(1);
 const bgm=new Audio('audio/theme.mp3');bgm.loop=true;bgm.volume=.6;
@@ -253,7 +270,7 @@ bgm.onplay=sync;bgm.onpause=sync;sync();tryPlay();
 const firstGesture=e=>{if(e.target.closest&&e.target.closest('#music'))return;tryPlay();if(!bgm.paused)['pointerdown','keydown','touchstart'].forEach(ev=>removeEventListener(ev,firstGesture,true))};
 ['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,firstGesture,true));
 document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(idx+1);if(e.key==='ArrowLeft')go(idx-1)});
-document.querySelectorAll('.toc button').forEach(b=>b.onclick=()=>{const ch=+b.dataset.ch;const pi=pageDefs.findIndex(p=>!p.intro&&!p.cont&&p.ch===ch);go(Math.floor(pi/2)+1)});
+document.querySelectorAll('.toc button').forEach(b=>b.onclick=()=>{const ch=+b.dataset.ch;const pi=pageDefs.findIndex(p=>!p.intro&&!p.cont&&p.ch===ch);go(single?pi+1:Math.floor(pi/2)+1)});
 render();
 const mo=document.getElementById('modal');
 const ew=document.getElementById('endwrap');
