@@ -223,7 +223,7 @@ function pageHTML(p,i){
  const hd=`<div class="hd"><span class="n">${p.ch+1}</span><span class="t">${c.t}${p.cont?' (cont.)':''}</span></div>`;
  const rows=p.r.map(r=>`<div class="rowp">${r.map(j=>c.html[j]).join('')}</div>`).join('');
  const say=p.say&&c.say?`<div class="say">${c.say}</div>`:'';
- const letter=p.letter?`<button id="openLetter2" style="align-self:center;font-size:calc(var(--pw)/14);padding:6px 24px;background:var(--gold);animation:pulse 1.6s infinite">✉ ABRIR CARTA</button>`:'';
+ const letter='';
  return hd+rows+say+letter+`<div class="pn">${i}</div>`;
 }
 const cover=`<div class="cover" id="cover"><svg viewBox="0 0 100 100" style="width:42%"><circle cx="50" cy="50" r="42" fill="#0b2a18" stroke="#ffcf3a" stroke-width="5"/><circle cx="50" cy="50" r="30" fill="#19e36b" stroke="#000" stroke-width="3"/><circle cx="50" cy="50" r="19" fill="#0b2a18" stroke="#ffcf3a" stroke-width="3"/><circle cx="50" cy="50" r="9" fill="#eafff1"/></svg><h2>O LIVRO<br>DAS LENDAS</h2><p>A origem do Guardião da Luz Esmeralda<br>21 de dezembro</p><div class="hint">▶ CLIQUE PARA ABRIR</div></div>`;
@@ -276,7 +276,7 @@ const mo=document.getElementById('modal');
 const ew=document.getElementById('endwrap');
 const openL=()=>mo.classList.add('open'),closeL=()=>{mo.classList.remove('open');if(ew)ew.classList.remove('roll')};
 if(ew)ew.onclick=()=>{if(ew.classList.contains('roll'))return;ew.classList.add('roll');setTimeout(openL,1750)};
-document.getElementById('openLetter2').onclick=openL;document.getElementById('closeLetter').onclick=closeL;
+document.getElementById('closeLetter').onclick=closeL;
 mo.onclick=e=>{if(e.target===mo)closeL()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeL()});
 if(location.hash.startsWith('#p')){go(+location.hash.slice(2));}
 
